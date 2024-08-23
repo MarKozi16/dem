@@ -1,0 +1,28 @@
+var dem = ee.Image("CGIAR/SRTM90_V4");
+
+var elevation = dem.select('elevation');
+
+Map.addLayer(elevation, {min:0, max:7000}, 'elevation');
+
+var boundaryCountry = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017');
+
+var _Mexico = boundaryCountry.filter(ee.Filter.eq('country_na', 'Mexico'));
+
+Map.addLayer(_Mexico, {}, 'boundaryMexico');
+
+var clipUser = elevation.clip(_Mexico);
+
+Map.addLayer(clipUser, {min:0, max:7000}, 'MexicoElevation');
+
+var clipUser2 = elevation.clip(geometry);
+
+Map.addLayer(clipUser2, {min:0, max:7000}, 'elevationZona');
+
+Export.image.toDrive({
+  image: clipUser2,
+  description: 'BH2_DEM',
+  scale:30,
+  region:geometry,
+  maxPixels: 1E10
+});
+
