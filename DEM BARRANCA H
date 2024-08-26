@@ -6,7 +6,7 @@ var slope = ee.Terrain.slope(srtm);
 
 // mostrar el resultado.
 Map.setCenter(-98.1926, 19.0941, 12); // Centro en el Volcán Arenal.
-Map.addLayer(slope, {min: 0, max :6000}, 'slope');
+Map.addLayer(slope, {min: 0, max :60}, 'slope');
 
 // Obtener el aspecto (en grados) .
 var aspect = ee.Terrain.aspect(srtm);
@@ -17,16 +17,20 @@ var sinImage = aspect.divide(180).multiply(Math.PI).sin();
 //mostrar el resultado .
 Map.addLayer(sinImage, {min: -1, max: 1}, 'sin');
 
-var clipUser2 = sinImage.clip(geometry);
+//crear clip de alturas de poligono
+var clipUser2 = slope.clip(geometry);
 
+//agrgar mapa de elevaciones
 Map.addLayer(clipUser2, {min:0, max:60}, 'elevationzona');
 
+//aplicar algoritmo sin 
 var aspect2 = ee.Terrain.aspect(clipUser2);
 
 var sinImage2 = aspect2.divide(180).multiply(Math.PI).sin();
 
 Map.addLayer(sinImage2, {min: -1, max: 1}, 'sin2');
 
+//exportar
 Export.image.toDrive({
   image: sinImage2,
   description: 'BH3_DEMsen',
