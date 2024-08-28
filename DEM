@@ -1,23 +1,34 @@
+// Cargar DEM 
 var dem = ee.Image("CGIAR/SRTM90_V4");
 
+// Algoritmo de elevaciones
 var elevation = dem.select('elevation');
 
+//Proyectar mapa
 Map.addLayer(elevation, {min:0, max:7000}, 'elevation');
 
+//cargar divisiones politicas
 var boundaryCountry = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017');
 
+// Algoritmo para proyectar en Mexico 
 var _Mexico = boundaryCountry.filter(ee.Filter.eq('country_na', 'Mexico'));
 
+//Proyectar mapa de Mexico 
 Map.addLayer(_Mexico, {}, 'boundaryMexico');
 
+//crear mapa de elevaciones solo para mexico 
 var clipUser = elevation.clip(_Mexico);
 
+// Proyectar mapa de elevaciones en Mexico 
 Map.addLayer(clipUser, {min:0, max:7000}, 'MexicoElevation');
 
+// crear clip de la zona de estudio con un poligono 
 var clipUser2 = elevation.clip(geometry);
 
+// proyectar elevaciones de la zona de estudio 
 Map.addLayer(clipUser2, {min:0, max:7000}, 'elevationZona');
 
+// exportar Tiff de la zona de estudio 
 Export.image.toDrive({
   image: clipUser2,
   description: 'BH2_DEM',
