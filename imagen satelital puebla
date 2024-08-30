@@ -1,0 +1,31 @@
+// Llamada a la coleccion Landsat 8 y filtrado de parÃ¡metros
+var ColeccionLandsat = ee.ImageCollection ('LANDSAT/LC08/C02/T1_TOA') 
+  .filterDate ('2019-04-01', '2019-12-30')
+  .filterMetadata ('CLOUD_COVER', 'Less_Than', 20);
+
+// Composicion de imagen compuesta
+var LandsatIMG = ee.Image(ColeccionLandsat.mean()); 
+
+// Juego de bandas para composicion de imagen a falso color o color natural
+var ComposicionRGB = ['B4','B3','B2'];
+
+// Conversion RGB a HSV
+var RGB2HSV = LandsatIMG.select(ComposicionRGB).rgbToHsv();
+
+// Refinado y conversiÃ³n de HSV a RGB
+var Pansharpen = ee.Image.cat([
+  RGB2HSV.select('hue'), 
+  RGB2HSV.select('saturation'), 
+  LandsatIMG.select('B8')
+]).hsvToRgb();
+
+// crear clip de la zona de estudio con un poligono 
+var clipUser =Pansharpen.clip(geometry);
+
+// proyectar elevaciones de la zona de estudio 
+Map.addLayer (clipUser, {
+  min: 0.0,
+  max: 0.3,
+  gamma: 1.0,
+  bands: ['red', 'green', 'blue']}, 
+  'Imagen Landsat 8 - PansharpeningZone');
