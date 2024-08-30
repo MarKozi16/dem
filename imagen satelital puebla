@@ -29,3 +29,10 @@ Map.addLayer (clipUser, {
   gamma: 1.0,
   bands: ['red', 'green', 'blue']}, 
   'Imagen Landsat 8 - PansharpeningZone');
+
+// Importar y representar shapefiles en Google Earth Engine
+        // Representamos los datos del vector
+        Map.addLayer(geometry.draw ({color: 'orange'}), {}, 'Li­mites AOI');
+
+// Centrar el mapa en el área de estudio
+Map.centerObject(geometry);
