@@ -1,0 +1,52 @@
+# PYTHON QGIS AGGREGATE
+
+# Conteo de manzanas
+aggregate(     layer:='21_PobViv_Total_Manz',
+    aggregate:='count', 
+    expression:='CVE_LOC',
+    filter:=intersects($geometry, geometry(@parent))
+	)
+
+
+# conteo de población 
+aggregate(
+    layer:= '21_PobViv_Total_Manz',
+    aggregate:='sum',
+    expression:= POB_TOTAL,
+    filter:=intersects($geometry,geometry(@parent))
+)
+
+
+# PROYECTAR NOMBRE DE MUNICIPIOS
+
+array_to_string(
+  aggregate(
+    layer:='21_Municipios',
+    aggregate:='array_agg',
+    expression:= NOMGEO,
+    filter:=intersects($geometry, geometry(@parent))
+  ), 
+  ', '
+)
+
+
+# CONTEO CON CONDICIONANTE 
+
+aggregate(
+  layer:='21_DENUE_SE',
+  aggregate:='count',
+  expression:='TIPO_ESTAB',
+  filter:="TIPO_ESTAB" LIKE 'Hospitales' AND intersects($geometry, geometry(@parent))
+)
+
+
+# suma numérica de un registro con condicionante
+
+aggregate(
+  layer:='21_DENUE_SE',
+  aggregate:='sum',
+  expression:='VALOR',
+  filter:="TIPO_ESTAB" LIKE 'Hospitales' AND intersects($geometry, geometry(@parent))
+)
+
+
