@@ -1,0 +1,25 @@
+// Importar y representar shapefiles en Google Earth Engine
+// Representamos los datos del vector
+Map.addLayer(geometry.draw ({color: 'beige'}), {}, 'Li­mites AOI');
+
+//Centrar el objeto
+Map.centerObject(geometry,7)
+
+// Crear composición de imágenes Sentinel 2
+var img =ee.ImageCollection("COPERNICUS/S2_HARMONIZED")
+                  .filterDate('2018-01-01', '2018-12-31')
+                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
+                  .filterBounds(geometry)
+                  .map(function(image){return image.clip(geometry)})
+                  .median();
+
+// Centrar el mapa en el área de estudio
+Map.centerObject(geometry);
+
+// Añadir imagen al mapa
+Map.addLayer (img, {
+  max: 4000, 
+  min: 0.0, 
+  gamma: 1.0,
+  bands: ['B11','B8A','B2']}, 
+  'Imagen Sentinel 2');
