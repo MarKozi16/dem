@@ -1,0 +1,40 @@
+from qgis.core import QgsProject, QgsFeature, QgsGeometry
+
+# Obtener las capas
+layer_padre = QgsProject.instance().mapLayersByName('Tehuacan_Cuicatlan_Geo_ITRF08')[0]
+layer_hijo = QgsProject.instance().mapLayersByName('A')[0]
+
+# Asegúrate de que las capas tienen geometrías válidas
+if not layer_padre.isValid() or not layer_hijo.isValid():
+    raise Exception("Una o ambas capas no son válidas")
+
+# Obtener la geometría del polígono padre
+features_padre = list(layer_padre.getFeatures())
+if not features_padre:
+    raise Exception("No hay características en la capa padre")
+
+# Considerar múltiples polígonos en la capa padre
+area_padre_total = 0
+for feature_padre in features_padre:
+    geom_padre = feature_padre.geometry()
+    area_padre_total += geom_padre.area()
+
+# Inicializar variables para calcular el área total de intersección
+area_interseccion_total = 0
+
+# Iterar sobre cada polígono hijo
+for feature_hijo in layer_hijo.getFeatures():
+    geom_hijo = feature_hijo.geometry()
+    for feature_padre in features_padre:
+        geom_padre = feature_padre.geometry()
+        if geom_hijo.intersects(geom_padre):
+            interseccion = geom_hijo.intersection(geom_padre)
+            area_interseccion_total += interseccion.area()
+
+# Calcular el porcentaje
+if area_padre_total > 0:
+    porcentaje_interseccion = (area_interseccion_total / area_padre_total) * 100
+else:
+    porcentaje_interseccion = 0
+
+print(f"El porcentaje del área de intersección es: {porcentaje_interseccion:.2f}%")
