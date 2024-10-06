@@ -1,0 +1,55 @@
+// Representar el límite del área
+Map.addLayer(ANPF, {color: 'BEIGE'}, 'Límites AOI');
+
+// Imprimir el área protegida en la consola
+print(ANPF);
+
+// Paso 2: Cargar las imágenes Landsat pre y post-incendio
+var preFire = ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA')
+               .filterDate('2020-06-01', '2020-07-01')  // Fechas antes del incendio
+               .filterBounds(ANPF)  // Usamos la geometría del bosque
+               .filterMetadata('CLOUD_COVER', 'Less_Than', 50)
+               .median();  // Obtener la imagen compuesta
+
+var postFire = ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA')
+                .filterDate('2020-09-01', '2020-10-01')  // Fechas después del incendio
+                .filterBounds(ANPF)  // Usamos la geometría del bosque
+                .filterMetadata('CLOUD_COVER', 'Less_Than', 50)
+                .median();  // Obtener la imagen compuesta
+
+// Consola
+print(preFire, 'Pre incendio');
+print(postFire, 'Post incendio');
+
+// Parámetros de visualización para Landsat 8 (combinación RGB)
+var vizParams = {
+  bands: ['B4', 'B3', 'B2'],  // Combinación de bandas RGB
+  min: 0, 
+  max: 0.3
+};
+
+// Añadir imágenes pre y post-incendio al mapa
+Map.centerObject(ANPF, 10);  // Centramos el mapa en el AOI
+Map.addLayer(preFire, vizParams, 'Pre-Incendio');
+Map.addLayer(postFire, vizParams, 'Post-Incendio');
+
+// Calcular el NBR para pre-incendio y post-incendio
+var nbrPre = preFire.normalizedDifference(['B5', 'B7']).rename('NBR_Pre');
+var nbrPost = postFire.normalizedDifference(['B5', 'B7']).rename('NBR_Post');
+
+// Calcular el Delta NBR (dNBR)
+var dNBR = nbrPre.subtract(nbrPost).rename('dNBR');
+
+// dNBR Consola
+print(dNBR, 'dNBR');
+
+// Visualización de la severidad del incendio
+var severityPalette = ['#ffffff', '#7a8737', '#acbe4d', '#0ae042', '#fff70b', '#ffaf38', '#ff641b', '#FF0000'];
+var severityViz = {min: -1, max: 1, palette: severityPalette}; // Cambia los límites de visualización según sea necesario
+
+// Clip ANP
+var ClipUser = dNBR.clip(ANPF); // Recortar la imagen dNBR al área de interés
+
+// Mostrar los resultados en el mapa
+Map.addLayer(ClipUser, severityViz, 'dNBR - Severidad del Incendio (ANP)'); // Usa ClipUser como la capa a visualizar
+Map.centerObject(ANPF, 7);
